@@ -1,6 +1,16 @@
 # ASCII Keyboard
 
-A macOS menu bar app that types ASCII art letters directly into any text field.
+A macOS menu bar app that transforms your typing into ASCII art.
+
+## Installation
+
+1. Download the DMG from [Releases](https://github.com/levz0r/ASCIIKeyboard/releases)
+2. Open the DMG and drag ASCII Keyboard to Applications
+3. If you see "app is damaged" error, run in Terminal:
+   ```bash
+   xattr -cr /Applications/ASCII\ Keyboard.app
+   ```
+4. Open ASCII Keyboard and grant Accessibility permissions when prompted
 
 ## Features
 
