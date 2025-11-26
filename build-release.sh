@@ -3,7 +3,7 @@ set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_NAME="ASCII Keyboard"
-BUNDLE_ID="com.yourcompany.ASCIIKeyboard"
+BUNDLE_ID="lev.engineer.ASCIIKeyboard"
 VERSION="1.0.1"
 
 echo "=== Building ASCII Keyboard for Distribution ==="

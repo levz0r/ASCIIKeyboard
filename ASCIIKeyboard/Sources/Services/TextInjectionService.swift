@@ -22,7 +22,9 @@ class TextInjectionService {
 
     /// Check if the app has accessibility permissions
     func hasAccessibilityPermissions() -> Bool {
-        return AXIsProcessTrusted()
+        let trusted = AXIsProcessTrusted()
+        debugLog("AXIsProcessTrusted() = \(trusted), Bundle ID: \(Bundle.main.bundleIdentifier ?? "nil")")
+        return trusted
     }
 
     /// Request accessibility permissions (opens System Preferences)
