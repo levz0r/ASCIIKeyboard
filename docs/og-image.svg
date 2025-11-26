@@ -1,0 +1,39 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#0d1117"/>
+
+  <!-- Grid pattern background -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#21262d" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <!-- Simple text-based logo -->
+  <text x="600" y="180" font-family="'Courier New', monospace" font-size="72" font-weight="bold" fill="#58a6ff" text-anchor="middle">
+    ~$ ASCII
+  </text>
+  <text x="600" y="270" font-family="'Courier New', monospace" font-size="72" font-weight="bold" fill="#58a6ff" text-anchor="middle">
+    Keyboard
+  </text>
+
+  <!-- Decorative ASCII border -->
+  <text x="600" y="340" font-family="'Courier New', monospace" font-size="24" fill="#30363d" text-anchor="middle">
+    ════════════════════════════════════════
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="420" font-family="'Courier New', monospace" font-size="36" fill="#e6edf3" text-anchor="middle">
+    Type normally. Output beautifully.
+  </text>
+
+  <!-- Subtitle -->
+  <text x="600" y="480" font-family="'Courier New', monospace" font-size="22" fill="#8b949e" text-anchor="middle">
+    A macOS menu bar app for ASCII art typing
+  </text>
+
+  <!-- Features -->
+  <text x="600" y="560" font-family="'Courier New', monospace" font-size="20" fill="#58a6ff" text-anchor="middle">
+    [ 20 fonts ]  [ Live preview ]  [ Works everywhere ]
+  </text>
+</svg>
