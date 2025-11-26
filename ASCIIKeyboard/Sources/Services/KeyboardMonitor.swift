@@ -8,10 +8,45 @@ class KeyboardMonitor {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var isEnabled = false
+    private(set) var hasInputMonitoringPermission = false
 
     var onKeyPress: ((Character) -> Bool)?  // Returns true to block the key, false to pass through
 
     private init() {}
+
+    /// Test if we can create an event tap (requires Input Monitoring permission)
+    func checkInputMonitoringPermission() -> Bool {
+        // If we already have an event tap, we have permission
+        if eventTap != nil {
+            hasInputMonitoringPermission = true
+            return true
+        }
+
+        // Try to create a minimal event tap to test permission
+        let eventMask = (1 << CGEventType.keyDown.rawValue)
+        let testTap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .listenOnly,  // Use listenOnly for the test
+            eventsOfInterest: CGEventMask(eventMask),
+            callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
+                return Unmanaged.passRetained(event)
+            },
+            userInfo: nil
+        )
+
+        if testTap != nil {
+            // Clean up the test tap immediately
+            CFMachPortInvalidate(testTap!)
+            hasInputMonitoringPermission = true
+            debugLog("Input Monitoring permission: granted")
+            return true
+        } else {
+            hasInputMonitoringPermission = false
+            debugLog("Input Monitoring permission: NOT granted")
+            return false
+        }
+    }
 
     func start() {
         guard eventTap == nil else { return }

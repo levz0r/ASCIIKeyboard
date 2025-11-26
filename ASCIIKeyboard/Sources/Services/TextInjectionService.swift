@@ -81,41 +81,34 @@ class TextInjectionService {
         }
     }
 
-    /// Simulate Cmd+V keystroke using AppleScript (more reliable across apps)
+    /// Simulate Cmd+V keystroke using CGEvent (doesn't require Automation permission)
     private func simulatePaste() {
-        debugLog("simulatePaste() called - using AppleScript")
+        debugLog("simulatePaste() called - using CGEvent")
 
-        // Get the frontmost app name
-        guard let frontApp = NSWorkspace.shared.frontmostApplication,
-              let appName = frontApp.localizedName else {
-            debugLog("No frontmost app found")
+        let source = CGEventSource(stateID: .hidSystemState)
+
+        // Virtual key code for 'V' is 9
+        let vKeyCode: CGKeyCode = 9
+
+        // Create key down event with Command modifier
+        guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true) else {
+            debugLog("Failed to create keyDown event")
             return
         }
+        keyDown.flags = .maskCommand
 
-        debugLog("Will paste to: \(appName)")
-
-        // Activate the app first, then keystroke
-        let script = """
-        tell application "\(appName)"
-            activate
-        end tell
-        delay 0.1
-        tell application "System Events"
-            keystroke "v" using command down
-        end tell
-        """
-
-        var error: NSDictionary?
-        if let appleScript = NSAppleScript(source: script) {
-            appleScript.executeAndReturnError(&error)
-            if let error = error {
-                debugLog("AppleScript error: \(error)")
-            } else {
-                debugLog("AppleScript paste executed successfully")
-            }
-        } else {
-            debugLog("Failed to create AppleScript")
+        // Create key up event with Command modifier
+        guard let keyUp = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false) else {
+            debugLog("Failed to create keyUp event")
+            return
         }
+        keyUp.flags = .maskCommand
+
+        // Post the events
+        keyDown.post(tap: .cghidEventTap)
+        keyUp.post(tap: .cghidEventTap)
+
+        debugLog("CGEvent paste executed")
     }
 
     /// Alternative: Type character by character using key events (slower but doesn't use clipboard)

@@ -1,9 +1,13 @@
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @State private var showingPreview = false
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
+    @State private var hasAccessibility = TextInjectionService.shared.hasAccessibilityPermissions()
+
+    let accessibilityTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: 16) {
@@ -31,7 +35,7 @@ struct ContentView: View {
                 .buttonStyle(.plain)
             }
 
-            if !TextInjectionService.shared.hasAccessibilityPermissions() {
+            if !hasAccessibility {
                 Button(action: {
                     TextInjectionService.shared.requestAccessibilityPermissions()
                 }) {
@@ -143,6 +147,9 @@ struct ContentView: View {
         }
         .padding()
         .frame(width: 320)
+        .onReceive(accessibilityTimer) { _ in
+            hasAccessibility = TextInjectionService.shared.hasAccessibilityPermissions()
+        }
     }
 }
 
