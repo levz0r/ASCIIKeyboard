@@ -4,6 +4,15 @@ A macOS menu bar app that transforms your typing into ASCII art.
 
 ## Installation
 
+### Option 1: Homebrew (Recommended)
+
+```bash
+brew tap levz0r/asciikeyboard
+brew install --cask ascii-keyboard
+```
+
+### Option 2: Direct Download
+
 1. Download the DMG from [Releases](https://github.com/levz0r/ASCIIKeyboard/releases)
 2. Open the DMG and drag ASCII Keyboard to Applications
 3. If you see "app is damaged" error, run in Terminal:
