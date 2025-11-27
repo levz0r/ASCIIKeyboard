@@ -1,5 +1,13 @@
 # ASCII Keyboard
 
+![macOS](https://img.shields.io/badge/macOS-13.0+-blue?logo=apple)
+![Swift](https://img.shields.io/badge/Swift-5.9-orange?logo=swift)
+![License](https://img.shields.io/github/license/levz0r/ASCIIKeyboard)
+![GitHub release](https://img.shields.io/github/v/release/levz0r/ASCIIKeyboard)
+![Downloads](https://img.shields.io/github/downloads/levz0r/ASCIIKeyboard/total)
+![Homebrew](https://img.shields.io/badge/Homebrew-levz0r%2Fasciikeyboard-FBB040?logo=homebrew)
+![GitHub stars](https://img.shields.io/github/stars/levz0r/ASCIIKeyboard)
+
 A macOS menu bar app that transforms your typing into ASCII art.
 
 ## Installation
