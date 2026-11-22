@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  linux:
+    name: Linux (CLI + FIGletKit)
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift build -c release --product ascii-keyboard
+      - run: swift test
+      - run: .build/release/ascii-keyboard -f slant "ok"
+
+  macos:
+    name: macOS (menu bar app + CLI)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift build -c release
+      - run: swift test
+      - run: test -x .build/release/ASCIIKeyboard && test -x .build/release/ascii-keyboard

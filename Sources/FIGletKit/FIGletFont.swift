@@ -1,31 +1,40 @@
 import Foundation
 
-struct FIGletFont: Identifiable, Hashable {
-    let id = UUID()
-    let name: String
-    let height: Int
-    let baseline: Int
-    let maxWidth: Int
-    let hardblank: Character
-    let characters: [Int: [String]]  // ASCII code -> lines
+public struct FIGletFont: Identifiable, Hashable {
+    public let id = UUID()
+    public let name: String
+    public let height: Int
+    public let baseline: Int
+    public let maxWidth: Int
+    public let hardblank: Character
+    public let characters: [Int: [String]]  // ASCII code -> lines
 
-    func hash(into hasher: inout Hasher) {
+    public init(name: String, height: Int, baseline: Int, maxWidth: Int, hardblank: Character, characters: [Int: [String]]) {
+        self.name = name
+        self.height = height
+        self.baseline = baseline
+        self.maxWidth = maxWidth
+        self.hardblank = hardblank
+        self.characters = characters
+    }
+
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(name)
     }
 
-    static func == (lhs: FIGletFont, rhs: FIGletFont) -> Bool {
+    public static func == (lhs: FIGletFont, rhs: FIGletFont) -> Bool {
         lhs.name == rhs.name
     }
 }
 
-struct FIGletParser {
-    enum ParseError: Error {
+public struct FIGletParser {
+    public enum ParseError: Error {
         case invalidHeader
         case invalidFile
         case missingCharacters
     }
 
-    static func parse(content: String, name: String) throws -> FIGletFont {
+    public static func parse(content: String, name: String) throws -> FIGletFont {
         let lines = content.components(separatedBy: .newlines)
         guard lines.count > 1 else { throw ParseError.invalidFile }
 
