@@ -1,10 +1,22 @@
+#if canImport(Darwin)
 import Foundation
+#else
+// FoundationEssentials drops ICU, which keeps static Linux binaries small.
+import FoundationEssentials
+#endif
+#if canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#endif
 
 public final class FIGletService {
     private var fonts: [String: FIGletFont] = [:]
 
     public init() {}
 
+    #if canImport(Darwin)
+    /// Fonts from the macOS .app bundle, falling back to the embedded fonts.
     public func loadBundledFonts() -> [FIGletFont] {
         var loadedFonts: [FIGletFont] = []
 
@@ -48,20 +60,19 @@ public final class FIGletService {
 
         return loadedFonts.sorted { $0.name < $1.name }
     }
+    #endif
 
     public func loadFontsFromDirectory(_ url: URL) -> [FIGletFont] {
         var fonts: [FIGletFont] = []
         let fileManager = FileManager.default
 
-        guard let enumerator = fileManager.enumerator(at: url, includingPropertiesForKeys: nil) else {
+        guard let names = try? fileManager.contentsOfDirectory(atPath: url.path) else {
             return fonts
         }
 
-        for case let fileURL as URL in enumerator {
-            if fileURL.pathExtension == "flf" {
-                if let font = loadFont(from: fileURL) {
-                    fonts.append(font)
-                }
+        for name in names.sorted() where name.hasSuffix(".flf") {
+            if let font = loadFont(from: url.appendingPathComponent(name)) {
+                fonts.append(font)
             }
         }
 
@@ -78,7 +89,7 @@ public final class FIGletService {
             } else if let latin1Content = try? String(contentsOf: url, encoding: .isoLatin1) {
                 content = latin1Content
             } else {
-                throw NSError(domain: "FIGletService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unable to read font file"])
+                throw FIGletParser.ParseError.invalidFile
             }
             return try FIGletParser.parse(content: content, name: name)
         } catch {
@@ -122,5 +133,5 @@ public final class FIGletService {
 /// Library-local debug logging. Set ASCIIKEYBOARD_DEBUG=1 to print to stderr.
 func debugLog(_ message: String) {
     guard ProcessInfo.processInfo.environment["ASCIIKEYBOARD_DEBUG"] != nil else { return }
-    FileHandle.standardError.write(Data(("[FIGletKit] " + message + "\n").utf8))
+    fputs("[FIGletKit] " + message + "\n", stderr)
 }

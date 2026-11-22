@@ -1,4 +1,14 @@
+#if canImport(Darwin)
 import Foundation
+#else
+// FoundationEssentials drops ICU, which keeps static Linux binaries small.
+import FoundationEssentials
+#endif
+#if canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#endif
 import FIGletKit
 
 // ascii-keyboard: render text as FIGlet ASCII art in the terminal.
@@ -22,7 +32,7 @@ then /usr/share/figlet. A built-in font wins over a file with the same name.
 """
 
 func fail(_ message: String) -> Never {
-    FileHandle.standardError.write(Data("ascii-keyboard: \(message)\n".utf8))
+    fputs("ascii-keyboard: \(message)\n", stderr)
     exit(2)
 }
 
@@ -97,7 +107,7 @@ if renderAll {
     exit(0)
 }
 
-guard let font = fonts.first(where: { $0.name.caseInsensitiveCompare(fontName) == .orderedSame }) else {
+guard let font = fonts.first(where: { $0.name.lowercased() == fontName.lowercased() }) else {
     fail("no font named '\(fontName)'. Try --list.")
 }
 print(renderLines(font), terminator: "")

@@ -1,0 +1,60 @@
+name: Linux binaries
+
+# Builds fully static ascii-keyboard binaries (musl, no Swift or glibc needed)
+# for x86_64 and aarch64. On a published release they are attached to it;
+# on pull requests and manual runs they are kept as workflow artifacts.
+
+on:
+  release:
+    types: [published]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Swift toolchain and its matching Static Linux SDK (checksum from swift.org/install).
+  SWIFT_IMAGE_SDK_URL: https://download.swift.org/swift-6.4.3-release/static-sdk/swift-6.4.3-RELEASE/swift-6.4.3-RELEASE_static-linux-0.1.0.artifactbundle.tar.gz
+  SWIFT_SDK_CHECKSUM: 529e6982974de78793c8348c1459105a772f54b464a51edf074e5b9c4bfe7c73
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: swift:6.4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Static Linux SDK
+        run: swift sdk install "$SWIFT_IMAGE_SDK_URL" --checksum "$SWIFT_SDK_CHECKSUM"
+      - name: Build
+        run: |
+          mkdir -p dist
+          for arch in x86_64 aarch64; do
+            swift build -c release --product ascii-keyboard --swift-sdk "$arch-swift-linux-musl" -Xlinker -s
+            bin="$(swift build -c release --product ascii-keyboard --swift-sdk "$arch-swift-linux-musl" --show-bin-path)/ascii-keyboard"
+            stage="dist/ascii-keyboard-linux-$arch"
+            mkdir -p "$stage"
+            cp "$bin" LICENSE "$stage/"
+            tar -C dist -czf "$stage.tar.gz" "ascii-keyboard-linux-$arch"
+          done
+          cd dist && sha256sum *.tar.gz > SHA256SUMS
+      - name: Smoke test (x86_64)
+        run: dist/ascii-keyboard-linux-x86_64/ascii-keyboard -f slant "ok"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ascii-keyboard-linux
+          path: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
+
+  attach:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ascii-keyboard-linux
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" *.tar.gz SHA256SUMS --clobber --repo "${{ github.repository }}"

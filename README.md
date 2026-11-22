@@ -38,10 +38,21 @@ brew install --cask ascii-keyboard
 
 ## Command line (macOS and Linux)
 
-The package also builds `ascii-keyboard`, a terminal command that uses the same renderer and the same 20 fonts as the app. It runs anywhere Swift does, including headless Linux servers.
+The package also builds `ascii-keyboard`, a terminal command that uses the same renderer and the same 20 fonts as the app. It runs on macOS and on any Linux, including headless servers.
+
+**Linux, prebuilt (no Swift needed):** each release has fully static binaries for `x86_64` and `aarch64` that run on any distro.
 
 ```bash
-swift build -c release --product ascii-keyboard --static-swift-stdlib
+arch=$(uname -m)   # x86_64 or aarch64
+curl -fsSL "https://github.com/levz0r/ASCIIKeyboard/releases/latest/download/ascii-keyboard-linux-$arch.tar.gz" | tar xz
+sudo install "ascii-keyboard-linux-$arch/ascii-keyboard" /usr/local/bin/
+ascii-keyboard -f slant "Hello"
+```
+
+**From source** (macOS or Linux with Swift 5.9+):
+
+```bash
+swift build -c release --product ascii-keyboard
 .build/release/ascii-keyboard -f slant "Hello"
 ```
 

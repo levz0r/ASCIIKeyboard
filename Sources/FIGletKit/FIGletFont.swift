@@ -1,4 +1,9 @@
+#if canImport(Darwin)
 import Foundation
+#else
+// FoundationEssentials drops ICU, which keeps static Linux binaries small.
+import FoundationEssentials
+#endif
 
 public struct FIGletFont: Identifiable, Hashable {
     public let id = UUID()
@@ -35,7 +40,8 @@ public struct FIGletParser {
     }
 
     public static func parse(content: String, name: String) throws -> FIGletFont {
-        let lines = content.components(separatedBy: .newlines)
+        // Character.isNewline treats "\r\n" as one separator, so CRLF font files parse too.
+        let lines = content.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline).map(String.init)
         guard lines.count > 1 else { throw ParseError.invalidFile }
 
         // Parse header line
@@ -78,7 +84,7 @@ public struct FIGletParser {
                     line = String(line.dropLast())
                 }
                 // Replace hardblank with space
-                line = line.replacingOccurrences(of: String(hardblank), with: " ")
+                line = String(line.map { $0 == hardblank ? " " : $0 })
                 charLines.append(line)
             }
             characters[asciiCode] = charLines
