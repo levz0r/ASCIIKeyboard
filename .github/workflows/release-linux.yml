@@ -1,12 +1,17 @@
 name: Linux binaries
 
 # Builds fully static ascii-keyboard binaries (musl, no Swift or glibc needed)
-# for x86_64 and aarch64. On a published release they are attached to it;
-# on pull requests and manual runs they are kept as workflow artifacts.
+# for x86_64 and aarch64.
+#
+# Releases are immutable in this repo: assets can't be added after publishing.
+# So releasing is driven by pushing a tag (git tag v1.2.0 && git push origin v1.2.0):
+# the binaries are attached to a draft release, which is then published.
+# If you already created a draft for the tag (custom notes, a DMG), it is reused.
+# On pull requests and manual runs the binaries are only kept as artifacts.
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -44,17 +49,31 @@ jobs:
             dist/*.tar.gz
             dist/SHA256SUMS
 
-  attach:
-    if: github.event_name == 'release'
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: ascii-keyboard-linux
-      - name: Attach to release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" *.tar.gz SHA256SUMS --clobber --repo "${{ github.repository }}"
+          path: dist
+      - name: Attach to a draft release, then publish
+        run: |
+          state=$(gh release view "$TAG" --json isDraft -q 'if .isDraft then "draft" else "published" end' 2>/dev/null || echo missing)
+          case "$state" in
+            missing)
+              gh release create "$TAG" --draft --verify-tag --generate-notes --title "$TAG" dist/*.tar.gz dist/SHA256SUMS ;;
+            draft)
+              gh release upload "$TAG" dist/*.tar.gz dist/SHA256SUMS --clobber ;;
+            published)
+              echo "::error::$TAG is already published; immutable releases can't take new assets. Release a new tag instead."
+              exit 1 ;;
+          esac
+          gh release edit "$TAG" --draft=false --latest
