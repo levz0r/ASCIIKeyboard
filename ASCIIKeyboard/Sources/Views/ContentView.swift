@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import FIGletKit
 
 struct ContentView: View {
     @EnvironmentObject var appState: AppState

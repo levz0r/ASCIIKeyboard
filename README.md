@@ -36,10 +36,38 @@ brew install --cask ascii-keyboard
 - **Direct Typing**: ASCII art is typed directly into the focused application
 - **Preview Mode**: See your ASCII art before typing it
 
+## Command line (macOS and Linux)
+
+The package also builds `ascii-keyboard`, a terminal command that uses the same renderer and the same 20 fonts as the app. It runs anywhere Swift does, including headless Linux servers.
+
+```bash
+swift build -c release --product ascii-keyboard --static-swift-stdlib
+.build/release/ascii-keyboard -f slant "Hello"
+```
+
+```
+    __  __          __    __
+   / / / /  ___    / /   / /  ____
+  / /_/ /  / _ \  / /   / /  / __ \
+ / __  /  /  __/ / /   / /  / /_/ /
+/_/ /_/   \___/ /_/   /_/   \____/
+```
+
+| Command | What it does |
+|---|---|
+| `ascii-keyboard "text"` | Render in the default font (`standard`) |
+| `ascii-keyboard -f doom "text"` | Pick a font (case-insensitive) |
+| `ascii-keyboard --list` | List fonts |
+| `ascii-keyboard --all "text"` | Render in every font |
+| `echo text \| ascii-keyboard` | Read lines from standard input |
+| `ascii-keyboard -d ~/fonts "text"` | Load extra `.flf` fonts from a directory |
+
+Extra fonts are also read from `$ASCIIKEYBOARD_FONTS` (colon-separated) and `/usr/share/figlet`.
+
 ## Requirements
 
-- macOS 13.0 (Ventura) or later
-- Accessibility permissions (required for typing into other apps)
+- Menu bar app: macOS 13.0 (Ventura) or later, plus Accessibility permissions (required for typing into other apps)
+- Command line: macOS or Linux with Swift 5.9 or later
 
 ## Building
 
@@ -93,8 +121,8 @@ The app uses:
 
 You can add more FIGlet fonts (.flf files):
 1. Download fonts from [figlet.org](http://www.figlet.org/fontdb.cgi)
-2. Add them to the app's Fonts directory
-3. Or embed them in `EmbeddedFonts.swift`
+2. Add them to `ASCIIKeyboard/Resources/Fonts/`
+3. Run `python3 scripts/generate-embedded-fonts.py` to compile them into the binary (`Sources/FIGletKit/EmbeddedFonts.swift` is generated; don't edit it by hand)
 
 ## License
 

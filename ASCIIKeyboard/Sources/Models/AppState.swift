@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import FIGletKit
 import AppKit
 
 class AppState: ObservableObject {

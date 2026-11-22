@@ -1,9 +1,11 @@
 import Foundation
 
-class FIGletService {
+public final class FIGletService {
     private var fonts: [String: FIGletFont] = [:]
 
-    func loadBundledFonts() -> [FIGletFont] {
+    public init() {}
+
+    public func loadBundledFonts() -> [FIGletFont] {
         var loadedFonts: [FIGletFont] = []
 
         // Try app bundle first (for distributed app)
@@ -23,11 +25,10 @@ class FIGletService {
             .appendingPathComponent("Resources/Fonts")
         loadedFonts.append(contentsOf: loadFontsFromDirectory(appBundleFonts))
 
-        // Development fallback path
-        let fallbackPath = URL(fileURLWithPath: "/Users/lev/Dev/ASCIIKeyboard/ASCIIKeyboard/Resources/Fonts")
+        // Fallback: fonts compiled into the binary (e.g. running via `swift run` outside an .app bundle)
         if loadedFonts.isEmpty {
-            debugLog("Loading fonts from fallback: \(fallbackPath.path)")
-            loadedFonts.append(contentsOf: loadFontsFromDirectory(fallbackPath))
+            debugLog("No font files found; using embedded fonts")
+            loadedFonts.append(contentsOf: loadEmbeddedFonts())
         }
 
         // Deduplicate by name
@@ -48,7 +49,7 @@ class FIGletService {
         return loadedFonts.sorted { $0.name < $1.name }
     }
 
-    private func loadFontsFromDirectory(_ url: URL) -> [FIGletFont] {
+    public func loadFontsFromDirectory(_ url: URL) -> [FIGletFont] {
         var fonts: [FIGletFont] = []
         let fileManager = FileManager.default
 
@@ -67,7 +68,7 @@ class FIGletService {
         return fonts
     }
 
-    private func loadFont(from url: URL) -> FIGletFont? {
+    public func loadFont(from url: URL) -> FIGletFont? {
         do {
             let name = url.deletingPathExtension().lastPathComponent
             // Try UTF-8 first, then Latin-1 for fonts with extended characters
@@ -81,35 +82,24 @@ class FIGletService {
             }
             return try FIGletParser.parse(content: content, name: name)
         } catch {
-            print("Failed to load font from \(url): \(error)")
+            debugLog("Failed to load font from \(url.path): \(error)")
             return nil
         }
     }
 
-    private func loadEmbeddedFonts() -> [FIGletFont] {
-        var fonts: [FIGletFont] = []
-
-        // Standard font (embedded)
-        if let standardFont = try? FIGletParser.parse(content: EmbeddedFonts.standard, name: "Standard") {
-            fonts.append(standardFont)
+    /// Every font compiled into the binary (see EmbeddedFonts), sorted by name.
+    public func loadEmbeddedFonts() -> [FIGletFont] {
+        EmbeddedFonts.all.compactMap { entry in
+            do {
+                return try FIGletParser.parse(content: entry.content, name: entry.name)
+            } catch {
+                debugLog("Failed to parse embedded font \(entry.name): \(error)")
+                return nil
+            }
         }
-
-        if let bannerFont = try? FIGletParser.parse(content: EmbeddedFonts.banner, name: "Banner") {
-            fonts.append(bannerFont)
-        }
-
-        if let bigFont = try? FIGletParser.parse(content: EmbeddedFonts.big, name: "Big") {
-            fonts.append(bigFont)
-        }
-
-        if let slantFont = try? FIGletParser.parse(content: EmbeddedFonts.slant, name: "Slant") {
-            fonts.append(slantFont)
-        }
-
-        return fonts
     }
 
-    func render(_ text: String, font: FIGletFont) -> String {
+    public func render(_ text: String, font: FIGletFont) -> String {
         guard !text.isEmpty else { return "" }
 
         var resultLines = Array(repeating: "", count: font.height)
@@ -127,4 +117,10 @@ class FIGletService {
 
         return resultLines.joined(separator: "\n") + "\n"
     }
+}
+
+/// Library-local debug logging. Set ASCIIKEYBOARD_DEBUG=1 to print to stderr.
+func debugLog(_ message: String) {
+    guard ProcessInfo.processInfo.environment["ASCIIKEYBOARD_DEBUG"] != nil else { return }
+    FileHandle.standardError.write(Data(("[FIGletKit] " + message + "\n").utf8))
 }
